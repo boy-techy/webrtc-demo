@@ -16,13 +16,14 @@ import StopScreenShare from '@material-ui/icons/StopScreenShare';
 import Tooltip from '@material-ui/core/Tooltip';
 import PowerSettingsNew from '@material-ui/icons/PowerSettingsNew';
 import QuestionAnswer from '@material-ui/icons/QuestionAnswer';
+import RecordVoiceOverIcon from '@material-ui/icons/RecordVoiceOver';
 
 import IconButton from '@material-ui/core/IconButton';
 
 export default class ToolbarComponent extends Component {
     constructor(props) {
         super(props);
-        this.state = { fullscreen: false };
+        this.state = { fullscreen: false, isRecording: false };
         this.camStatusChanged = this.camStatusChanged.bind(this);
         this.micStatusChanged = this.micStatusChanged.bind(this);
         this.screenShare = this.screenShare.bind(this);
@@ -62,9 +63,20 @@ export default class ToolbarComponent extends Component {
         this.props.toggleChat();
     }
 
+    handleRecording = () => {
+        if (this.state.isRecording) {
+            this.setState({ isRecording: false });
+            this.props.stopRecording();
+        } else {
+            this.setState({ isRecording: true });
+            this.props.startRecording();
+        }
+    }
+
     render() {
         const mySessionId = this.props.sessionId;
         const localUser = this.props.user;
+        const { isRecording } = this.state;
         return (
             <AppBar className="toolbar" id="header">
                 <Toolbar className="toolbar">
@@ -81,6 +93,9 @@ export default class ToolbarComponent extends Component {
                     </div>
 
                     <div className="buttonsContent">
+                        <IconButton color="inherit" className="navButton" id="navMicButton" onClick={this.handleRecording}>
+                            {!isRecording ? <RecordVoiceOverIcon /> : <RecordVoiceOverIcon color="secondary" />}
+                        </IconButton>
                         <IconButton color="inherit" className="navButton" id="navMicButton" onClick={this.micStatusChanged}>
                             {localUser !== undefined && localUser.isAudioActive() ? <Mic /> : <MicOff color="secondary" />}
                         </IconButton>

@@ -73,8 +73,7 @@ video {
     background-color: #000000c4;
 }
 #volumeButton {
-    background-color: #000000c4;
-    position: absolute;
+    position: static;
     bottom: 45px;
     right: 1px;
     z-index: 1000;
@@ -86,6 +85,18 @@ video {
     height: 100%;
     position: absolute;
     overflow: hidden;
+}
+
+.sub-action-btn {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    background-color: #000000c4;
+}
+.sub-action-btn button {
+    color: #ffffff;
 }
 
 #input,

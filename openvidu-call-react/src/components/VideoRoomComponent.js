@@ -1,7 +1,7 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import axios from 'axios';
 import './VideoRoomComponent.css';
-import { OpenVidu } from 'openvidu-browser';
+import {OpenVidu} from 'openvidu-browser';
 import StreamComponent from './stream/StreamComponent';
 import DialogExtensionComponent from './dialog-extension/DialogExtension';
 import ChatComponent from './chat/ChatComponent';
@@ -9,6 +9,7 @@ import ChatComponent from './chat/ChatComponent';
 import OpenViduLayout from '../layout/openvidu-layout';
 import UserModel from '../models/user-model';
 import ToolbarComponent from './toolbar/ToolbarComponent';
+import Subscriber from "./Subscribers";
 
 var localUser = new UserModel();
 
@@ -21,7 +22,7 @@ class VideoRoomComponent extends Component {
         this.OPENVIDU_SERVER_SECRET = this.props.openviduSecret ? this.props.openviduSecret : 'MY_SECRET';
         this.hasBeenUpdated = false;
         this.layout = new OpenViduLayout();
-        let sessionName = this.props.sessionName ? this.props.sessionName : 'SessionA';
+        let sessionName = this.props.sessionName ? this.props.sessionName : 'SessionB';
         let userName = this.props.user ? this.props.user : 'OpenVidu_User' + Math.floor(Math.random() * 100);
         this.state = {
             mySessionId: sessionName,
@@ -104,12 +105,17 @@ class VideoRoomComponent extends Component {
                 console.log(token);
                 this.connect(token);
             }).catch((error) => {
-                if(this.props.error){
-                    this.props.error({ error: error.error, messgae: error.message, code: error.code, status: error.status });
+                if (this.props.error) {
+                    this.props.error({
+                        error: error.error,
+                        messgae: error.message,
+                        code: error.code,
+                        status: error.status
+                    });
                 }
                 console.log('There was an error getting the token:', error.code, error.message);
                 alert('There was an error getting the token:', error.message);
-              });
+            });
         }
     }
 
@@ -117,14 +123,19 @@ class VideoRoomComponent extends Component {
         this.state.session
             .connect(
                 token,
-                { clientData: this.state.myUserName },
+                {clientData: this.state.myUserName},
             )
             .then(() => {
                 this.connectWebCam();
             })
             .catch((error) => {
-                if(this.props.error){
-                    this.props.error({ error: error.error, messgae: error.message, code: error.code, status: error.status });
+                if (this.props.error) {
+                    this.props.error({
+                        error: error.error,
+                        messgae: error.message,
+                        code: error.code,
+                        status: error.status
+                    });
                 }
                 alert('There was an error connecting to the session:', error.message);
                 console.log('There was an error connecting to the session:', error.code, error.message);
@@ -155,9 +166,9 @@ class VideoRoomComponent extends Component {
         localUser.setStreamManager(publisher);
         this.subscribeToUserChanged();
         this.subscribeToStreamDestroyed();
-        this.sendSignalUserChanged({ isScreenShareActive: localUser.isScreenShareActive() });
+        this.sendSignalUserChanged({isScreenShareActive: localUser.isScreenShareActive()});
 
-        this.setState({ localUser: localUser }, () => {
+        this.setState({localUser: localUser}, () => {
             this.state.localUser.getStreamManager().on('streamPlaying', (e) => {
                 this.updateLayout();
                 publisher.videos[0].video.parentElement.classList.remove('custom-class');
@@ -177,7 +188,7 @@ class VideoRoomComponent extends Component {
         this.setState({
             session: undefined,
             subscribers: [],
-            mySessionId: 'SessionA',
+            mySessionId: 'SessionB',
             myUserName: 'OpenVidu_User' + Math.floor(Math.random() * 100),
             localUser: undefined,
         });
@@ -185,25 +196,26 @@ class VideoRoomComponent extends Component {
             this.props.leaveSession();
         }
     }
+
     camStatusChanged() {
         localUser.setVideoActive(!localUser.isVideoActive());
         localUser.getStreamManager().publishVideo(localUser.isVideoActive());
-        this.sendSignalUserChanged({ isVideoActive: localUser.isVideoActive() });
-        this.setState({ localUser: localUser });
+        this.sendSignalUserChanged({isVideoActive: localUser.isVideoActive()});
+        this.setState({localUser: localUser});
     }
 
     micStatusChanged() {
         localUser.setAudioActive(!localUser.isAudioActive());
         localUser.getStreamManager().publishAudio(localUser.isAudioActive());
-        this.sendSignalUserChanged({ isAudioActive: localUser.isAudioActive() });
-        this.setState({ localUser: localUser });
+        this.sendSignalUserChanged({isAudioActive: localUser.isAudioActive()});
+        this.setState({localUser: localUser});
     }
 
     nicknameChanged(nickname) {
         let localUser = this.state.localUser;
         localUser.setNickname(nickname);
-        this.setState({ localUser: localUser });
-        this.sendSignalUserChanged({ nickname: this.state.localUser.getNickname() });
+        this.setState({localUser: localUser});
+        this.sendSignalUserChanged({nickname: this.state.localUser.getNickname()});
     }
 
     deleteSubscriber(stream) {
@@ -352,7 +364,7 @@ class VideoRoomComponent extends Component {
             },
             (error) => {
                 if (error && error.name === 'SCREEN_EXTENSION_NOT_INSTALLED') {
-                    this.setState({ showExtensionDialog: true });
+                    this.setState({showExtensionDialog: true});
                 } else if (error && error.name === 'SCREEN_SHARING_NOT_SUPPORTED') {
                     alert('Your browser does not support screen sharing');
                 } else if (error && error.name === 'SCREEN_EXTENSION_DISABLED') {
@@ -368,8 +380,8 @@ class VideoRoomComponent extends Component {
             localUser.setStreamManager(publisher);
             this.state.session.publish(localUser.getStreamManager()).then(() => {
                 localUser.setScreenShareActive(true);
-                this.setState({ localUser: localUser }, () => {
-                    this.sendSignalUserChanged({ isScreenShareActive: localUser.isScreenShareActive() });
+                this.setState({localUser: localUser}, () => {
+                    this.sendSignalUserChanged({isScreenShareActive: localUser.isScreenShareActive()});
                 });
             });
         });
@@ -380,7 +392,33 @@ class VideoRoomComponent extends Component {
     }
 
     closeDialogExtension() {
-        this.setState({ showExtensionDialog: false });
+        this.setState({showExtensionDialog: false});
+    }
+
+    startRecording = () => {
+        const data = {outputMode: "COMPOSED", recordingLayout: "BEST_FIT", session: this.state.mySessionId}
+        axios
+            .post(this.OPENVIDU_SERVER_URL + '/api/recordings/start', data, {
+                headers: {
+                    Authorization: 'Basic ' + btoa('OPENVIDUAPP:' + this.OPENVIDU_SERVER_SECRET),
+                    'Content-Type': 'application/json',
+                },
+            }).then(res => {
+            this.setState({recordingObj: res.data})
+        })
+    }
+
+    stopRecording = () => {
+        const {recordingObj} = this.state;
+        axios
+            .post(this.OPENVIDU_SERVER_URL + '/api/recordings/stop/' + recordingObj.id, {}, {
+                headers: {
+                    Authorization: 'Basic ' + btoa('OPENVIDUAPP:' + this.OPENVIDU_SERVER_SECRET),
+                    'Content-Type': 'application/json',
+                },
+            }).then(res => {
+            console.log("res", res);
+        })
     }
 
     stopScreenShare() {
@@ -415,10 +453,10 @@ class VideoRoomComponent extends Component {
             display = this.state.chatDisplay === 'none' ? 'block' : 'none';
         }
         if (display === 'block') {
-            this.setState({ chatDisplay: display, messageReceived: false });
+            this.setState({chatDisplay: display, messageReceived: false});
         } else {
             console.log('chat', display);
-            this.setState({ chatDisplay: display });
+            this.setState({chatDisplay: display});
         }
         this.updateLayout();
     }
@@ -428,6 +466,7 @@ class VideoRoomComponent extends Component {
             messageReceived: this.state.chatDisplay === 'none',
         });
     }
+
     checkSize() {
         if (document.getElementById('layout').offsetWidth <= 700 && !this.hasBeenUpdated) {
             this.toggleChat('none');
@@ -438,10 +477,46 @@ class VideoRoomComponent extends Component {
         }
     }
 
+    kickOutUser = async connectionId => {
+        const url = `${this.OPENVIDU_SERVER_URL}/api/sessions/${this.state.mySessionId}/connection/${connectionId}`;
+        try {
+            const res = await axios.delete(url, {
+                headers: {
+                    Authorization: 'Basic ' + btoa('OPENVIDUAPP:' + this.OPENVIDU_SERVER_SECRET),
+                    'Content-Type': 'application/json',
+                },
+            })
+            console.debug("res", res);
+        } catch (e) {
+            console.error("Error while kickout user", e);
+        }
+    }
+
+    sendMessageToUser = async (connectionId, message) => {
+        const url = `${this.OPENVIDU_SERVER_URL}/api/signal`;
+        const data = {
+            session: this.state.mySessionId,
+            to: [connectionId],
+            type: "MY_TYPE",
+            data: message
+        }
+        try {
+            const res = await axios.post(url, data, {
+                headers: {
+                    Authorization: 'Basic ' + btoa('OPENVIDUAPP:' + this.OPENVIDU_SERVER_SECRET),
+                    'Content-Type': 'application/json',
+                },
+            })
+            console.debug("res", res);
+        } catch (e) {
+            console.error("Error while sending Signal to user", e);
+        }
+    }
+
     render() {
         const mySessionId = this.state.mySessionId;
         const localUser = this.state.localUser;
-        var chatDisplay = { display: this.state.chatDisplay };
+        var chatDisplay = {display: this.state.chatDisplay};
 
         return (
             <div className="container" id="container">
@@ -453,22 +528,27 @@ class VideoRoomComponent extends Component {
                     micStatusChanged={this.micStatusChanged}
                     screenShare={this.screenShare}
                     stopScreenShare={this.stopScreenShare}
+                    stopRecording={this.stopRecording}
+                    startRecording={this.startRecording}
                     toggleFullscreen={this.toggleFullscreen}
                     leaveSession={this.leaveSession}
                     toggleChat={this.toggleChat}
                 />
 
-                <DialogExtensionComponent showDialog={this.state.showExtensionDialog} cancelClicked={this.closeDialogExtension} />
+                <DialogExtensionComponent showDialog={this.state.showExtensionDialog}
+                                          cancelClicked={this.closeDialogExtension}/>
 
                 <div id="layout" className="bounds">
+                    <Subscriber users={this.state.subscribers} sendMessageToUser={this.sendMessageToUser}/>
                     {localUser !== undefined && localUser.getStreamManager() !== undefined && (
                         <div className="OT_root OT_publisher custom-class" id="localUser">
-                            <StreamComponent user={localUser} handleNickname={this.nicknameChanged} />
+                            <StreamComponent user={localUser} handleNickname={this.nicknameChanged}/>
                         </div>
                     )}
                     {this.state.subscribers.map((sub, i) => (
                         <div key={i} className="OT_root OT_publisher custom-class" id="remoteUsers">
-                            <StreamComponent user={sub} streamId={sub.streamManager.stream.streamId} />
+                            <StreamComponent user={sub} streamId={sub.streamManager.stream.streamId}
+                                             kickOutUser={this.kickOutUser}/>
                         </div>
                     ))}
                     {localUser !== undefined && localUser.getStreamManager() !== undefined && (
@@ -493,8 +573,8 @@ class VideoRoomComponent extends Component {
      * These methods retrieve the mandatory user token from OpenVidu Server.
      * This behaviour MUST BE IN YOUR SERVER-SIDE IN PRODUCTION (by using
      * the API REST, openvidu-java-client or openvidu-node-client):
-     *   1) Initialize a session in OpenVidu Server	(POST /api/sessions)
-     *   2) Generate a token in OpenVidu Server		(POST /api/tokens)
+     *   1) Initialize a session in OpenVidu Server    (POST /api/sessions)
+     *   2) Generate a token in OpenVidu Server        (POST /api/tokens)
      *   3) The token must be consumed in Session.connect() method
      */
 
@@ -504,7 +584,10 @@ class VideoRoomComponent extends Component {
 
     createSession(sessionId) {
         return new Promise((resolve, reject) => {
-            var data = JSON.stringify({ customSessionId: sessionId });
+            var data = JSON.stringify({
+                customSessionId: sessionId,
+                recordingMode: "MANUAL"
+            });
             axios
                 .post(this.OPENVIDU_SERVER_URL + '/api/sessions', data, {
                     headers: {
@@ -528,11 +611,11 @@ class VideoRoomComponent extends Component {
                         if (
                             window.confirm(
                                 'No connection to OpenVidu Server. This may be a certificate error at "' +
-                                    this.OPENVIDU_SERVER_URL +
-                                    '"\n\nClick OK to navigate and accept it. ' +
-                                    'If no certificate warning is shown, then check that your OpenVidu Server is up and running at "' +
-                                    this.OPENVIDU_SERVER_URL +
-                                    '"',
+                                this.OPENVIDU_SERVER_URL +
+                                '"\n\nClick OK to navigate and accept it. ' +
+                                'If no certificate warning is shown, then check that your OpenVidu Server is up and running at "' +
+                                this.OPENVIDU_SERVER_URL +
+                                '"',
                             )
                         ) {
                             window.location.assign(this.OPENVIDU_SERVER_URL + '/accept-certificate');
@@ -544,7 +627,7 @@ class VideoRoomComponent extends Component {
 
     createToken(sessionId) {
         return new Promise((resolve, reject) => {
-            var data = JSON.stringify({ session: sessionId });
+            var data = JSON.stringify({session: sessionId});
             axios
                 .post(this.OPENVIDU_SERVER_URL + '/api/tokens', data, {
                     headers: {
@@ -560,4 +643,5 @@ class VideoRoomComponent extends Component {
         });
     }
 }
+
 export default VideoRoomComponent;
