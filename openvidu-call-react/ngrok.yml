@@ -1,0 +1,8 @@
+authtoken: 1bwS6QTGDv7yOZviZKTFeauT5F1_5nswgrW4nHS7q6Yy9TXmp
+tunnels:
+  web:
+    addr: 3000
+    proto: http    
+  dev:
+    addr: 4443
+    proto: http
