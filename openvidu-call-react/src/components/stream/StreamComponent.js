@@ -46,8 +46,8 @@ export default class StreamComponent extends Component {
         this.props.user.streamManager.subscribeToAudio(audioEnable);
     }
     camOffSubscriber = () => {
-        const audioEnable = !this.props.user.isVideoActive();
-        this.props.user.streamManager.publishVideo(audioEnable);
+        const videoEnable = !this.props.user.isVideoActive();
+        this.props.user.streamManager.subscribeToVideo(videoEnable);
     }
 
     kickOutUser = () => {
@@ -112,7 +112,7 @@ export default class StreamComponent extends Component {
                                     <VideocamOff id="statusCam"/>
                                 </div>
                             ) : (<>
-                                    {type === "local" ?
+                                    {!this.props.user.isLocal() ?
                                         <div id="camIcon">
                                             <Videocam onClick={this.camOffSubscriber}/>
                                         </div>
@@ -136,16 +136,22 @@ export default class StreamComponent extends Component {
                             )}
                         </div>
                         <div className="sub-action-btn">
-                            {!this.props.user.isLocal() && (
+                            {!this.props.user.isLocal() ? (
+                                    <>
+                                        <IconButton id="volumeButton" onClick={this.toggleSound}>
+                                            {this.state.mutedSound ? <VolumeOff color="secondary"/> : <VolumeUp/>}
+                                        </IconButton>
+                                        <IconButton onClick={this.kickOutUser}>
+                                            <CancelIcon/>
+                                        </IconButton>
+                                    </>
+                                ) :
                                 <>
-                                    <IconButton id="volumeButton" onClick={this.toggleSound}>
-                                        {this.state.mutedSound ? <VolumeOff color="secondary"/> : <VolumeUp/>}
-                                    </IconButton>
-                                    <IconButton onClick={this.kickOutUser}>
+                                    <IconButton onClick={this.props.terminateAllSessions}>
                                         <CancelIcon/>
                                     </IconButton>
                                 </>
-                            )}
+                            }
                         </div>
                     </div>
                 ) : null}

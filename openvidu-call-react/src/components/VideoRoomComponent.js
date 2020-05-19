@@ -487,6 +487,7 @@ class VideoRoomComponent extends Component {
                 },
             })
             console.debug("res", res);
+            return res;
         } catch (e) {
             console.error("Error while kickout user", e);
         }
@@ -497,7 +498,7 @@ class VideoRoomComponent extends Component {
         const data = {
             session: this.state.mySessionId,
             to: [connectionId],
-            type: "MY_TYPE",
+            type: "PERSONAL_CHAT",
             data: message
         }
         try {
@@ -511,6 +512,12 @@ class VideoRoomComponent extends Component {
         } catch (e) {
             console.error("Error while sending Signal to user", e);
         }
+    }
+
+    terminateAllSessions = () => {
+        const {subscribers} = this.state;
+        Promise.all(subscribers.map(sub => this.kickOutUser(sub.connectionId)));
+        this.leaveSession();
     }
 
     render() {
@@ -539,10 +546,15 @@ class VideoRoomComponent extends Component {
                                           cancelClicked={this.closeDialogExtension}/>
 
                 <div id="layout" className="bounds">
-                    <Subscriber users={this.state.subscribers} sendMessageToUser={this.sendMessageToUser}/>
+                    {localUser !== undefined && localUser.getStreamManager() !== undefined && (
+                        <Subscriber users={this.state.subscribers}
+                                    sendMessageToUser={this.sendMessageToUser}
+                                    sessionUser={localUser}/>
+                    )}
                     {localUser !== undefined && localUser.getStreamManager() !== undefined && (
                         <div className="OT_root OT_publisher custom-class" id="localUser">
-                            <StreamComponent user={localUser} handleNickname={this.nicknameChanged}/>
+                            <StreamComponent user={localUser} handleNickname={this.nicknameChanged}
+                                             terminateAllSessions={this.terminateAllSessions}/>
                         </div>
                     )}
                     {this.state.subscribers.map((sub, i) => (

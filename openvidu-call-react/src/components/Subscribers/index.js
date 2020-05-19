@@ -6,7 +6,8 @@ class Subscriber extends Component {
         this.state = {
             message: "",
             isForm: false,
-            currentId: ""
+            currentId: "",
+            msgList: []
         }
     }
 
@@ -18,7 +19,7 @@ class Subscriber extends Component {
     }
 
     handleChange = event => {
-        this.setState({ message: event.target.value })
+        this.setState({message: event.target.value})
     }
 
     openForm = e => {
@@ -29,10 +30,21 @@ class Subscriber extends Component {
         this.setState({isForm: false, message: "", currentId: null})
     }
 
+    componentDidMount() {
+        const {sessionUser} = this.props;
+        sessionUser.getStreamManager().stream.session.on('signal', event => {
+            if (event.type === "signal:PERSONAL_CHAT") {
+                const data = event.data;
+                this.setState({msgList: [...this.state.msgList, data]});
+            }
+        });
+    }
+
 
     render() {
         const {users} = this.props;
-        const {message, isForm} = this.state;
+        const {message, isForm, msgList} = this.state;
+        const chatMsg = msgList.map(msg => <li>{msg}</li>);
         return (
             <div>
                 <ul>
@@ -46,6 +58,8 @@ class Subscriber extends Component {
                             <button>Send</button>
                         </form> : null
                 }
+
+                <ul>{chatMsg}</ul>
             </div>
         )
     }
