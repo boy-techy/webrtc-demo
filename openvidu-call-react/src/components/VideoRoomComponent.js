@@ -10,6 +10,7 @@ import OpenViduLayout from '../layout/openvidu-layout';
 import UserModel from '../models/user-model';
 import ToolbarComponent from './toolbar/ToolbarComponent';
 import Subscriber from "./Subscribers";
+import Recordings from "./Recordings";
 
 var localUser = new UserModel();
 
@@ -546,11 +547,15 @@ class VideoRoomComponent extends Component {
                                           cancelClicked={this.closeDialogExtension}/>
 
                 <div id="layout" className="bounds">
-                    {localUser !== undefined && localUser.getStreamManager() !== undefined && (
-                        <Subscriber users={this.state.subscribers}
-                                    sendMessageToUser={this.sendMessageToUser}
-                                    sessionUser={localUser}/>
-                    )}
+                    <div>
+                        <Recordings serverUrl={this.OPENVIDU_SERVER_URL}
+                                   serverSecret={this.OPENVIDU_SERVER_SECRET}/>
+                        {localUser !== undefined && localUser.getStreamManager() !== undefined && (
+                            <Subscriber users={this.state.subscribers}
+                                        sendMessageToUser={this.sendMessageToUser}
+                                        sessionUser={localUser}/>
+                        )}
+                    </div>
                     {localUser !== undefined && localUser.getStreamManager() !== undefined && (
                         <div className="OT_root OT_publisher custom-class" id="localUser">
                             <StreamComponent user={localUser} handleNickname={this.nicknameChanged}
