@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import './ToolbarComponent.css';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -17,13 +17,14 @@ import Tooltip from '@material-ui/core/Tooltip';
 import PowerSettingsNew from '@material-ui/icons/PowerSettingsNew';
 import QuestionAnswer from '@material-ui/icons/QuestionAnswer';
 import RecordVoiceOverIcon from '@material-ui/icons/RecordVoiceOver';
+import PanToolRoundedIcon from '@material-ui/icons/PanToolRounded';
 
 import IconButton from '@material-ui/core/IconButton';
 
 export default class ToolbarComponent extends Component {
     constructor(props) {
         super(props);
-        this.state = { fullscreen: false, isRecording: false };
+        this.state = {fullscreen: false, isRecording: false};
         this.camStatusChanged = this.camStatusChanged.bind(this);
         this.micStatusChanged = this.micStatusChanged.bind(this);
         this.screenShare = this.screenShare.bind(this);
@@ -51,7 +52,7 @@ export default class ToolbarComponent extends Component {
     }
 
     toggleFullscreen() {
-        this.setState({ fullscreen: !this.state.fullscreen });
+        this.setState({fullscreen: !this.state.fullscreen});
         this.props.toggleFullscreen();
     }
 
@@ -65,18 +66,24 @@ export default class ToolbarComponent extends Component {
 
     handleRecording = () => {
         if (this.state.isRecording) {
-            this.setState({ isRecording: false });
+            this.setState({isRecording: false});
             this.props.stopRecording();
         } else {
-            this.setState({ isRecording: true });
+            this.setState({isRecording: true});
             this.props.startRecording();
         }
+    }
+
+    raiseHandHandler = () => {
+        const {isRaiseHand} = this.state;
+        this.setState({isRaiseHand: !isRaiseHand});
+        this.props.user.getStreamManager().stream.session.signal({type: 'handRaised', data: !isRaiseHand});
     }
 
     render() {
         const mySessionId = this.props.sessionId;
         const localUser = this.props.user;
-        const { isRecording } = this.state;
+        const {isRecording, isRaiseHand} = this.state;
         return (
             <AppBar className="toolbar" id="header">
                 <Toolbar className="toolbar">
@@ -93,42 +100,52 @@ export default class ToolbarComponent extends Component {
                     </div>
 
                     <div className="buttonsContent">
-                        <IconButton color="inherit" className="navButton" id="navMicButton" onClick={this.handleRecording}>
-                            {!isRecording ? <RecordVoiceOverIcon /> : <RecordVoiceOverIcon color="secondary" />}
+                        <IconButton color="inherit" className="navButton" id="navMicButton"
+                                    onClick={this.handleRecording}>
+                            {!isRecording ? <RecordVoiceOverIcon/> : <RecordVoiceOverIcon color="secondary"/>}
                         </IconButton>
-                        <IconButton color="inherit" className="navButton" id="navMicButton" onClick={this.micStatusChanged}>
-                            {localUser !== undefined && localUser.isAudioActive() ? <Mic /> : <MicOff color="secondary" />}
+                        <IconButton color="inherit" className="navButton" id="navMicButton"
+                                    onClick={this.raiseHandHandler}>
+                            {!isRaiseHand ? <PanToolRoundedIcon/> : <PanToolRoundedIcon color="secondary"/>}
+                        </IconButton>
+                        <IconButton color="inherit" className="navButton" id="navMicButton"
+                                    onClick={this.micStatusChanged}>
+                            {localUser !== undefined && localUser.isAudioActive() ? <Mic/> :
+                                <MicOff color="secondary"/>}
                         </IconButton>
 
-                        <IconButton color="inherit" className="navButton" id="navCamButton" onClick={this.camStatusChanged}>
+                        <IconButton color="inherit" className="navButton" id="navCamButton"
+                                    onClick={this.camStatusChanged}>
                             {localUser !== undefined && localUser.isVideoActive() ? (
-                                <Videocam />
+                                <Videocam/>
                             ) : (
-                                <VideocamOff color="secondary" />
+                                <VideocamOff color="secondary"/>
                             )}
                         </IconButton>
 
                         <IconButton color="inherit" className="navButton" onClick={this.screenShare}>
-                            {localUser !== undefined && localUser.isScreenShareActive() ? <PictureInPicture /> : <ScreenShare />}
+                            {localUser !== undefined && localUser.isScreenShareActive() ? <PictureInPicture/> :
+                                <ScreenShare/>}
                         </IconButton>
 
                         {localUser !== undefined &&
-                            localUser.isScreenShareActive() && (
-                                <IconButton onClick={this.stopScreenShare} id="navScreenButton">
-                                    <StopScreenShare color="secondary" />
-                                </IconButton>
-                            )}
+                        localUser.isScreenShareActive() && (
+                            <IconButton onClick={this.stopScreenShare} id="navScreenButton">
+                                <StopScreenShare color="secondary"/>
+                            </IconButton>
+                        )}
 
                         <IconButton color="inherit" className="navButton" onClick={this.toggleFullscreen}>
-                            {localUser !== undefined && this.state.fullscreen ? <FullscreenExit /> : <Fullscreen />}
+                            {localUser !== undefined && this.state.fullscreen ? <FullscreenExit/> : <Fullscreen/>}
                         </IconButton>
-                        <IconButton color="secondary" className="navButton" onClick={this.leaveSession} id="navLeaveButton">
-                            <PowerSettingsNew />
+                        <IconButton color="secondary" className="navButton" onClick={this.leaveSession}
+                                    id="navLeaveButton">
+                            <PowerSettingsNew/>
                         </IconButton>
-                         <IconButton color="inherit" onClick={this.toggleChat} id="navChatButton">
-                            {this.props.showNotification && <div id="point" className="" />}
+                        <IconButton color="inherit" onClick={this.toggleChat} id="navChatButton">
+                            {this.props.showNotification && <div id="point" className=""/>}
                             <Tooltip title="Chat">
-                                <QuestionAnswer />
+                                <QuestionAnswer/>
                             </Tooltip>
                         </IconButton>
                     </div>

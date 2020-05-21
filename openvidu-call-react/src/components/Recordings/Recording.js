@@ -14,7 +14,7 @@ const Recording = ({recording, playVideoHandler, downloadHandler}) => {
             <span onClick={downloadHandler}>
                 <GetAppIcon/>
             </span>
-            <a href={recording.url} target="_blank"><OpenInNewIcon/></a>
+            <a href={recording.url} target="_blank" rel="noopener noreferrer"><OpenInNewIcon/></a>
         </li>
 
     )

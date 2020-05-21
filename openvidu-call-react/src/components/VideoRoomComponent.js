@@ -32,6 +32,7 @@ class VideoRoomComponent extends Component {
             localUser: undefined,
             subscribers: [],
             chatDisplay: 'none',
+            handRaisedMeta: null
         };
 
         this.joinSession = this.joinSession.bind(this);
@@ -166,6 +167,7 @@ class VideoRoomComponent extends Component {
         localUser.setScreenShareActive(false);
         localUser.setStreamManager(publisher);
         this.subscribeToUserChanged();
+        this.subscribeRaiseHand();
         this.subscribeToStreamDestroyed();
         this.sendSignalUserChanged({isScreenShareActive: localUser.isScreenShareActive()});
 
@@ -521,10 +523,19 @@ class VideoRoomComponent extends Component {
         this.leaveSession();
     }
 
+    subscribeRaiseHand = () => {
+        this.state.session.on('signal:handRaised', (event) => {
+            this.setState({handRaisedMeta: `${event.from.data} ${event.data ? "raised" : "down"}`})
+            setTimeout(() => {
+                this.setState({handRaisedMeta: null})
+            }, 10000);
+        })
+    }
+
     render() {
         const mySessionId = this.state.mySessionId;
         const localUser = this.state.localUser;
-        var chatDisplay = {display: this.state.chatDisplay};
+        const chatDisplay = {display: this.state.chatDisplay};
 
         return (
             <div className="container" id="container">
@@ -548,8 +559,9 @@ class VideoRoomComponent extends Component {
 
                 <div id="layout" className="bounds">
                     <div>
+                        <p>{this.state.handRaisedMeta}</p>
                         <Recordings serverUrl={this.OPENVIDU_SERVER_URL}
-                                   serverSecret={this.OPENVIDU_SERVER_SECRET}/>
+                                    serverSecret={this.OPENVIDU_SERVER_SECRET}/>
                         {localUser !== undefined && localUser.getStreamManager() !== undefined && (
                             <Subscriber users={this.state.subscribers}
                                         sendMessageToUser={this.sendMessageToUser}

@@ -6,15 +6,18 @@ import forceDownload from "./utility";
 const Recordings = ({serverUrl, serverSecret}) => {
     const [recordings, setList] = useState([]);
     const [playVideoUrl, setSelected] = useState("");
-    useEffect(async () => {
-        const res = await axios.get(serverUrl + '/api/recordings', {
-            headers: {
-                Authorization: 'Basic ' + btoa('OPENVIDUAPP:' + serverSecret),
-                'Content-Type': 'application/json',
-            },
-        })
-        setList(res.data?.items);
-    }, []);
+    useEffect( () => {
+        const fetchList = async () => {
+            const res = await axios.get(serverUrl + '/api/recordings', {
+                headers: {
+                    Authorization: 'Basic ' + btoa('OPENVIDUAPP:' + serverSecret),
+                    'Content-Type': 'application/json',
+                },
+            })
+            setList(res.data?.items);
+        }
+        fetchList();
+    }, [serverUrl, serverSecret]);
 
 
     return (
